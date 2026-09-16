@@ -42,7 +42,7 @@
 
 ## Запуск на сервере с доменом
 
-Production-конфигурация уже добавлена в `docker-compose.yml`: фронтенд собирается в статические файлы, Caddy проксирует `/api` в backend и автоматически получает TLS-сертификат Let's Encrypt.
+Production-конфигурация использует существующий Nginx на сервере: frontend и backend публикуются только на localhost-порты, чтобы не конфликтовать с другими ботами и Mini App.
 
 1. Направьте DNS-запись `A` домена `test.monkeysdynasty.website` на публичный IP сервера. На сервере откройте TCP-порты `80` и `443`.
 2. Установите Docker с Compose plugin и скопируйте проект на сервер.
@@ -56,21 +56,59 @@ Production-конфигурация уже добавлена в `docker-compose
    SECRET_KEY=длинный_случайный_секрет
    ```
    `DATABASE_URL` можно не указывать: Compose задаёт адрес PostgreSQL внутри сети Docker.
-4. Запустите приложение:
+4. Запустите контейнеры приложения:
    ```bash
    docker compose up -d --build
    ```
-5. Проверьте:
+5. Добавьте в существующий Nginx временный HTTP server block:
+   ```nginx
+   server {
+      listen 80;
+      server_name test.monkeysdynasty.website;
+
+      location /api/ {
+         proxy_pass http://127.0.0.1:8001;
+         proxy_set_header Host $host;
+         proxy_set_header X-Real-IP $remote_addr;
+         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+         proxy_set_header X-Forwarded-Proto $scheme;
+      }
+
+      location /health {
+         proxy_pass http://127.0.0.1:8001;
+         proxy_set_header Host $host;
+         proxy_set_header X-Forwarded-Proto $scheme;
+      }
+
+      location / {
+         proxy_pass http://127.0.0.1:5173;
+         proxy_set_header Host $host;
+         proxy_set_header X-Real-IP $remote_addr;
+         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+         proxy_set_header X-Forwarded-Proto $scheme;
+      }
+   }
+   ```
+      Проверьте и перечитайте Nginx:
+      ```bash
+      sudo nginx -t && sudo systemctl reload nginx
+      ```
+   Получить сертификат можно через Certbot, если его ещё нет:
+   ```bash
+   sudo certbot --nginx -d test.monkeysdynasty.website
+   ```
+      Certbot сам добавит HTTPS и перенаправление с HTTP. Если сертификат уже существует, сразу добавьте SSL-настройки в этот server block.
+6. Проверьте:
    ```bash
    docker compose ps
    curl https://test.monkeysdynasty.website/health
    ```
 
-После этого Mini App открывается именно по адресу `https://test.monkeysdynasty.website`. При первом запуске Caddy сам выпустит сертификат, поэтому DNS и порты `80`/`443` должны быть настроены до команды запуска.
+После этого Mini App открывается именно по адресу `https://test.monkeysdynasty.website`. Существующий Nginx продолжает обслуживать остальные приложения.
 
 В BotFather укажите этот же URL в настройках Web App / Menu Button: `https://test.monkeysdynasty.website`.
 
-Для просмотра логов используйте `docker compose logs -f caddy backend frontend`, для остановки — `docker compose down`.
+Для просмотра логов используйте `docker compose logs -f backend frontend`, для остановки — `docker compose down`.
 
 ## Основные папки
 
