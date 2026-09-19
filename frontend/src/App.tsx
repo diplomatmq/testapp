@@ -41,6 +41,14 @@ type CaseInfo = {
   drops: GiftDrop[];
 };
 
+const localFreeCase: CaseInfo = {
+  slug: 'freecase',
+  name: 'Free Case',
+  preview_url: '/assets/freecase.webp',
+  price: 0,
+  drops: [],
+};
+
 const tabConfig: Array<{ key: TabKey; label: string }> = [
   { key: 'minigames', label: 'Миниигры' },
   { key: 'inventory', label: 'Инвентарь' },
@@ -95,7 +103,7 @@ function App() {
   const [depositAmount, setDepositAmount] = useState('');
   const [isDepositing, setIsDepositing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [cases, setCases] = useState<CaseInfo[]>([]);
+  const [cases, setCases] = useState<CaseInfo[]>([localFreeCase]);
   const [inventory, setInventory] = useState<InventoryEntry[]>([]);
   const [selectedCase, setSelectedCase] = useState<CaseInfo | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -122,7 +130,7 @@ function App() {
       try {
         const data = await fetchState();
         setProfile(data.user ?? null);
-        setCases(data.cases ?? []);
+        setCases(data.cases?.length ? data.cases : [localFreeCase]);
         setInventory(data.inventory ?? []);
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : 'Не удалось загрузить профиль');
