@@ -42,20 +42,24 @@ async def init_db() -> None:
             ) as response:
                 catalog = json.load(response)
             catalog_items = catalog.get("upgraded", []) + catalog.get("unupgraded", [])
-            gift_data = [
-                (item["short_name"].replace("_", "").lower(), item["full_name"])
-                for item in catalog_items
-            ]
+            catalog_by_slug = {}
+            for item in catalog_items:
+                slug = item["short_name"].replace("_", "").lower()
+                catalog_by_slug[slug] = item["full_name"]
+            gift_data = list(catalog_by_slug.items())
         except (OSError, KeyError, TypeError, json.JSONDecodeError):
             pass
+        existing_result = await session.execute(text("SELECT slug FROM gift_assets"))
+        existing_slugs = {row[0] for row in existing_result.all()}
         for slug, name in gift_data:
-            existing = await session.execute(text("SELECT id FROM gift_assets WHERE slug = :slug"), {"slug": slug})
-            if existing.scalar_one_or_none() is None:
-                session.add(GiftAsset(
-                    slug=slug,
-                    name=name,
-                    preview_url=f"/assets/gifts/webp/{slug}-1.webp",
-                    animation_url=f"/assets/gifts/lottie/{slug}-1.lottie.json",
-                    drop_weight=1,
-                ))
+            if slug in existing_slugs:
+                continue
+            session.add(GiftAsset(
+                slug=slug,
+                name=name,
+                preview_url=f"/assets/gifts/webp/{slug}-1.webp",
+                animation_url=f"/assets/gifts/lottie/{slug}-1.lottie.json",
+                drop_weight=1,
+            ))
+            existing_slugs.add(slug)
         await session.commit()
