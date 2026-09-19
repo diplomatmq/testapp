@@ -21,12 +21,11 @@ settings = get_settings()
 
 
 @asynccontextmanager
-async def lifecycle(app: FastAPI):
+async def lifespan(app: FastAPI):
     await init_db()
     if settings.bot_token:
         import asyncio
-        loop = asyncio.get_running_loop()
-        loop.create_task(start_bot())
+        asyncio.get_running_loop().create_task(start_bot())
     yield
 
 

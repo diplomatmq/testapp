@@ -14,6 +14,10 @@
   --accent-glow: rgba(79, 179, 169, 0.42);
   --gold: #fbbf24;
   --shadow: 0 20px 40px rgba(0, 0, 0, 0.24);
+  --tabbar-bg: rgba(39, 39, 42, 0.96);
+  --tab-active-bg: rgba(79, 179, 169, 0.16);
+  --row-bg: rgba(15, 23, 42, 0.82);
+  --button-text: #192321;
 }
 
 * {
@@ -107,6 +111,7 @@ button {
   color: var(--text);
   cursor: pointer;
   transition: border-color 0.2s ease, transform 0.2s ease;
+  appearance: none;
 }
 
 .balance-pill:hover {
@@ -137,6 +142,17 @@ button {
 .theme-toggle:hover {
   transform: rotate(12deg);
   border-color: var(--accent);
+}
+
+.theme-toggle:focus-visible,
+.balance-pill:focus-visible,
+.tab-item:focus-visible,
+.case-card:focus-visible,
+.primary-button:focus-visible,
+.ghost-button:focus-visible,
+.list-row:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
 }
 
 .content {
@@ -186,6 +202,13 @@ h2 {
   padding: 10px 14px;
   font-weight: 700;
   cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease, background 0.2s ease;
+}
+
+.ghost-button:hover,
+.primary-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
 }
 
 .ghost-button {
@@ -195,7 +218,7 @@ h2 {
 
 .primary-button {
   background: var(--accent);
-  color: #2b2b2b;
+  color: var(--button-text);
   box-shadow: 0 10px 20px var(--accent-glow);
 }
 
@@ -290,10 +313,17 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(15, 23, 42, 0.82);
+  background: var(--row-bg);
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: 12px 14px;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.list-row:hover {
+  background: color-mix(in srgb, var(--row-bg) 82%, var(--accent));
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  transform: translateY(-1px);
 }
 
 .profile-panel {
@@ -613,7 +643,7 @@ h2 {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 4px;
-  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  background: var(--tabbar-bg);
   border-top: 1px solid var(--line);
   border-radius: 0;
   padding: 8px 8px 0;
@@ -642,12 +672,12 @@ h2 {
   background: transparent;
   border: none;
   color: var(--text-soft);
-  border-radius: 12px 12px 0 0;
+  border-radius: 14px 14px 0 0;
   min-height: 76px;
   gap: 4px;
   cursor: pointer;
   font-size: 0.68rem;
-  transition: color 0.2s ease, transform 0.2s ease;
+  transition: color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
 .tab-item::after {
@@ -657,7 +687,7 @@ h2 {
   right: 8%;
   bottom: 0;
   height: 13px;
-  border-top: 3px solid var(--accent);
+  border-top: 3px solid var(--tab-color, var(--accent));
   border-radius: 50% 50% 0 0;
   box-shadow: 0 0 9px var(--accent-glow);
   opacity: 0;
@@ -665,6 +695,7 @@ h2 {
 
 .tab-item.active {
   color: var(--tab-color, var(--text));
+  background: color-mix(in srgb, var(--tab-color, var(--accent)) 16%, transparent);
   transform: translateY(-2px);
 }
 
@@ -694,6 +725,10 @@ h2 {
   color: var(--tab-color);
 }
 
+.tab-item:hover {
+  background: color-mix(in srgb, var(--tab-color) 10%, transparent);
+}
+
 .theme-light {
   --bg: #d6c6f5;
   --text: #2b2b2b;
@@ -704,6 +739,9 @@ h2 {
   --accent: #e07856;
   --accent-glow: rgba(224, 120, 86, 0.35);
   --shadow: 0 20px 40px rgba(73, 51, 94, 0.16);
+  --tabbar-bg: rgba(250, 247, 255, 0.98);
+  --row-bg: #eee7fa;
+  --button-text: #ffffff;
 }
 
 .theme-light .case-card,
@@ -719,6 +757,22 @@ h2 {
 .theme-light .brand-mark,
 .theme-light .primary-button {
   color: #fff;
+}
+
+.theme-light .tab-item {
+  color: #766b86;
+}
+
+.theme-light .tab-item.active {
+  color: var(--tab-color);
+}
+
+.theme-light .tab-item::after {
+  box-shadow: 0 0 10px color-mix(in srgb, var(--tab-color) 45%, transparent);
+}
+
+.theme-light .list-row:hover {
+  background: color-mix(in srgb, var(--row-bg) 88%, var(--tab-color, var(--accent)));
 }
 
 .floating-title {
