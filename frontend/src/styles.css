@@ -398,6 +398,7 @@ h2 {
 .roulette-wrap {
   position: relative;
   padding-top: 15px;
+  width: 100%;
 }
 
 .roulette-pointer {
@@ -412,6 +413,8 @@ h2 {
 }
 
 .roulette-window {
+  width: 100%;
+  min-height: 132px;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 17px;
@@ -422,7 +425,8 @@ h2 {
 .roulette-reel {
   display: flex;
   width: max-content;
-  padding: 15px 0;
+  min-height: 130px;
+  padding: 15px max(12px, calc(50vw - 58px)) 15px 12px;
   transition: transform 2.2s cubic-bezier(0.12, 0.72, 0.16, 1);
 }
 
@@ -430,16 +434,17 @@ h2 {
   display: grid;
   place-items: center;
   gap: 6px;
-  width: 116px;
-  padding: 0 9px;
+  width: clamp(92px, 18vw, 128px);
+  flex: 0 0 clamp(92px, 18vw, 128px);
+  padding: 0 6px;
   color: var(--text-soft);
   font-size: 0.68rem;
   text-align: center;
 }
 
 .roulette-slot img {
-  width: 82px;
-  height: 82px;
+  width: clamp(64px, 13vw, 88px);
+  height: clamp(64px, 13vw, 88px);
   border-radius: 13px;
   object-fit: cover;
 }
@@ -497,7 +502,7 @@ h2 {
 
 .drop-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -514,8 +519,9 @@ h2 {
 .possible-drop > span {
   display: grid;
   place-items: center;
-  width: 54px;
-  height: 54px;
+  width: min(100%, 68px);
+  aspect-ratio: 1;
+  height: auto;
   border-radius: 12px;
   object-fit: cover;
   background: rgba(15, 23, 42, 0.82);
@@ -817,5 +823,13 @@ h2 {
   .panel {
     padding-left: 12px;
     padding-right: 12px;
+  }
+
+  .drop-grid {
+    gap: 4px;
+  }
+
+  .possible-drop small {
+    font-size: 0.55rem;
   }
 }

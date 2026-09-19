@@ -112,13 +112,17 @@ function App() {
   const [lastDropLabel, setLastDropLabel] = useState('');
 
   const apiBaseUrl = import.meta.env.VITE_API_URL || '';
-  const telegramInitData = window.Telegram?.WebApp?.initData || '';
+  const getTelegramInitData = () => window.Telegram?.WebApp?.initData || '';
 
   const fetchState = async () => {
+    const telegramInitData = getTelegramInitData();
     const response = await fetch(`${apiBaseUrl}/api/state`, {
       headers: { 'X-Telegram-Init-Data': telegramInitData },
     });
-    if (!response.ok) throw new Error('Не удалось определить пользователя');
+    if (!response.ok) {
+      const data = await response.json().catch(() => null);
+      throw new Error(data?.detail ?? 'Не удалось определить пользователя');
+    }
     return response.json();
   };
 
@@ -138,7 +142,7 @@ function App() {
     };
 
     loadState();
-  }, [apiBaseUrl, telegramInitData]);
+  }, [apiBaseUrl]);
 
   const handleDeposit = async () => {
     const amount = Number(depositAmount);
@@ -150,6 +154,7 @@ function App() {
     setIsDepositing(true);
     setErrorMessage('');
     try {
+      const telegramInitData = getTelegramInitData();
       const response = await fetch(`${apiBaseUrl}/api/test-deposit?amount=${amount}`, {
         method: 'POST',
         headers: { 'X-Telegram-Init-Data': telegramInitData },
@@ -178,6 +183,7 @@ function App() {
     setSpinOffset(-((selectedCase.drops.length * 2 + 4) * 116));
 
     try {
+      const telegramInitData = getTelegramInitData();
       const response = await fetch(`${apiBaseUrl}/api/cases/${selectedCase.slug}/open`, {
         method: 'POST',
         headers: { 'X-Telegram-Init-Data': telegramInitData },
@@ -298,7 +304,7 @@ function App() {
               <div className="drop-grid">
                 <div className="possible-drop empty-drop"><span>✦</span><small>Ничего</small></div>
                 <div className="possible-drop stars-drop"><span>★</span><small>Stars</small></div>
-                {selectedCase.drops.map((gift) => <div className="possible-drop" key={gift.slug}><img src={gift.preview_url} alt={gift.name} /><small>{gift.name}</small></div>)}
+                {selectedCase.drops.slice(0, 6).map((gift) => <div className="possible-drop" key={gift.slug}><img src={gift.preview_url} alt={gift.name} /><small>{gift.name}</small></div>)}
               </div>
             </div>
           </section>

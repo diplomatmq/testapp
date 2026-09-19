@@ -6,7 +6,7 @@ import random
 import time
 from urllib.parse import parse_qsl
 
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -46,8 +46,10 @@ async def healthcheck() -> dict[str, str]:
 
 
 def verify_telegram_init_data(init_data: str) -> dict:
-    if not settings.bot_token or not init_data:
-        raise HTTPException(status_code=401, detail="Open the app from Telegram")
+    if not settings.bot_token:
+        raise HTTPException(status_code=503, detail="BOT_TOKEN is not configured on the server")
+    if not init_data:
+        raise HTTPException(status_code=401, detail="Telegram initData is empty; open the app from Telegram")
 
     values = dict(parse_qsl(init_data, keep_blank_values=True))
     received_hash = values.pop("hash", None)
@@ -60,7 +62,10 @@ def verify_telegram_init_data(init_data: str) -> dict:
     if not hmac.compare_digest(expected_hash, received_hash):
         raise HTTPException(status_code=401, detail="Invalid Telegram signature")
 
-    auth_date = int(values.get("auth_date", "0"))
+    try:
+        auth_date = int(values.get("auth_date", "0"))
+    except ValueError as error:
+        raise HTTPException(status_code=401, detail="Invalid Telegram auth_date") from error
     if time.time() - auth_date > 86400:
         raise HTTPException(status_code=401, detail="Telegram session expired")
 
@@ -72,9 +77,10 @@ def verify_telegram_init_data(init_data: str) -> dict:
 
 async def get_current_player(
     x_telegram_init_data: str | None = Header(default=None),
+    init_data: str | None = Query(default=None),
     db: AsyncSession = Depends(get_db),
 ) -> Player:
-    telegram_user = verify_telegram_init_data(x_telegram_init_data or "")
+    telegram_user = verify_telegram_init_data(x_telegram_init_data or init_data or "")
     result = await db.execute(select(Player).where(Player.telegram_id == telegram_user["id"]))
     player = result.scalar_one_or_none()
     if player is None:
